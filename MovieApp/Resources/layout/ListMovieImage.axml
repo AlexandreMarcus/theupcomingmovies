@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentPage
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="demoListView.ImageCellPage">
+    <ContentPage.Content>
+        <ListView
+            x:Name="listView">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <ViewCell>
+                        <StackLayout
+                            BackgroundColor="#eee"
+                            Orientation="Vertical">
+                            <StackLayout
+                                Orientation="Horizontal">
+                                <Image
+                                    Source="{Binding image}" />
+                                <Label
+                                    Text="{Binding title}"
+                                    TextColor="#f35e20" />
+                                <Label
+                                    Text="{Binding subtitle}"
+                                    HorizontalOptions="EndAndExpand"
+                                    TextColor="#503026" />
+                            </StackLayout>
+                        </StackLayout>
+                    </ViewCell>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+    </ContentPage.Content>
+</ContentPage>
