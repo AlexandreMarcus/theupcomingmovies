@@ -60,8 +60,17 @@ namespace MovieApp
 		public partial class Id
 		{
 			
+			// aapt resource value: 0x7f050002
+			public const int button1 = 2131034114;
+			
+			// aapt resource value: 0x7f050001
+			public const int editText1 = 2131034113;
+			
 			// aapt resource value: 0x7f050000
-			public const int listView1 = 2131034112;
+			public const int imageView1 = 2131034112;
+			
+			// aapt resource value: 0x7f050003
+			public const int listView1 = 2131034115;
 			
 			static Id()
 			{
@@ -77,10 +86,13 @@ namespace MovieApp
 		{
 			
 			// aapt resource value: 0x7f030000
-			public const int ListMovieImage = 2130903040;
+			public const int Detail = 2130903040;
 			
 			// aapt resource value: 0x7f030001
-			public const int Main = 2130903041;
+			public const int ListMovieImage = 2130903041;
+			
+			// aapt resource value: 0x7f030002
+			public const int Main = 2130903042;
 			
 			static Layout()
 			{
