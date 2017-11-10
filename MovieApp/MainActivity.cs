@@ -1,4 +1,4 @@
-using Android.App;
+﻿using Android.App;
 using Android.Widget;
 using Android.OS;
 using System.Net;
@@ -12,15 +12,24 @@ using Android.Graphics.Drawables;
 using Android.Views;
 using System.Threading;
 using System;
+using Android.Content;
+using Android.Graphics;
 
 namespace MovieApp
 {
     [Activity(Label = "The Upcoming Movie App", MainLauncher = true, Icon = "@drawable/icon")]
     public class MainActivity : Activity
     {
+
+        IList<Filme> listaFilmes = new List<Filme>();
+
+
         public static List<string> items = new List<string>();
         public static List<string> itemsIndex = new List<string>();
         string apiKey = "1f54bd990f1cdfb230adb312546d765d";
+        bool first = true;
+        //Exemplo imagem: 
+        //https://image.tmdb.org/t/p/w500/kqjL17yufvn9OVLyXYpvtyrFfak.jpg
 
         protected override void OnCreate(Bundle bundle)
         {
@@ -28,10 +37,15 @@ namespace MovieApp
 
             // Set our view from the "main" layout resource
             SetContentView(Resource.Layout.Main);
-            CarregarGeneros();
-            CarregarFilmes();
 
+            if (first == true)
+            {
+                first = false;
+                CarregarGeneros();
+                CarregarFilmes();
+            }
         }
+
 
 
         private void CarregarGeneros()
@@ -143,6 +157,9 @@ namespace MovieApp
 
         public void list_ItemClick(object sender, AdapterView.ItemClickEventArgs e)
         {
+            string end = "";
+            string textoFilme = "";
+            string url = "";
             try
             {
                 //Get our item from the list adapter
@@ -175,18 +192,36 @@ namespace MovieApp
                 {
                     //List of Details                
                     string endereoDetail = "https://api.themoviedb.org/3/movie/" + id + "?api_key=" + apiKey + "&language=en-US";
+                    end = endereoDetail;
                     string responseFromServerImage = CallRequest(endereoDetail);
                     var detail = JsonConvert.DeserializeObject<RootObjectDetail>(responseFromServerImage);
-                    string textoFilme = item.ToString() + " Overview: " + detail.overview;
+                    string textoFilmeTela = item.ToString() + " Overview: " + detail.overview;
+                    textoFilme = textoFilmeTela;
+                    url = detail.poster_path;
 
                     //Make a toast with the item name just to show it was clicked
-                    Toast.MakeText(this, textoFilme, ToastLength.Short).Show();
+                    Toast.MakeText(this, textoFilmeTela, ToastLength.Short).Show();
                 }
             }
             catch
             {
                 Toast.MakeText(this, "Sorry something went wrong!", ToastLength.Long).Show();
             }
+
+
+
+
+            var atividade2 = new Intent(this, typeof(DetailActivity));
+            atividade2.PutExtra("MyData1", end);
+            atividade2.PutExtra("MyData2", textoFilme);
+            atividade2.PutExtra("MyData3", url);
+            StartActivity(atividade2);
+
+
+
+
+
+
         }
 
 
@@ -194,7 +229,7 @@ namespace MovieApp
         private void CarregarFilmes()
         {
             string pagina = "1";
-            
+
             string endereco = "https://api.themoviedb.org/3/movie/upcoming?api_key=" + apiKey + "&language=en-US&page=" + pagina;
 
             string responseFromServer = CallRequest(endereco);
@@ -277,7 +312,26 @@ namespace MovieApp
                         items.Add(detail.title + " - " + caminhoImagem + " - " + genero + " - " + detail.release_date);
                         itemsIndex.Add(detail.id + "-" + detail.title + " - " + caminhoImagem + " - " + genero + " - " + detail.release_date);
 
+                        Filme reg = new Filme();
+                        reg.Descricao = detail.title + " - " + caminhoImagem + " - " + genero + " - " + detail.release_date;
+                        reg.Id = detail.id;
 
+
+                        string im = "https://image.tmdb.org/t/p/w500" + detail.poster_path;
+
+
+                        Bitmap imageBitmap = null;
+                        using (var webClient = new WebClient())
+                        {
+                            var imageBytes = webClient.DownloadData(im);
+                            if (imageBytes != null && imageBytes.Length > 0)
+                            {
+                                imageBitmap = BitmapFactory.DecodeByteArray(imageBytes, 0, imageBytes.Length);
+                            }
+                        }
+                        reg.Poster = imageBitmap;
+
+                        FilmesRepositorio.Filmes.Add(reg);
 
                     }
                     catch (Exception ex)
@@ -290,9 +344,6 @@ namespace MovieApp
 
             var listAdapter = new ArrayAdapter<string>(this, Android.Resource.Layout.SimpleListItem1, items.ToArray());
             list.Adapter = listAdapter;
-
-
-            //   this.radGridView1.Rows.Add(i.id, i.title, i.overview);
 
         }
         private static string CallRequest(string endereco)
@@ -367,5 +418,99 @@ namespace MovieApp
         }
 
     }
+
+
+    public class Filme
+    {
+        public int Id { get; set; }
+        public string Descricao { get; set; }
+        public Bitmap Poster { get; set; }
+
+        public override string ToString()
+        {
+            return Descricao;
+        }
+    }
+
+    public static class FilmesRepositorio
+    {
+        public static List<Filme> Filmes { get; private set; }
+
+        static FilmesRepositorio()
+        {
+            Filmes = new List<Filme>();
+
+            // AddFilmes();
+
+
+        }
+
+        //private static void AddFilmes()
+        //{
+        //    foreach (var i in listaFilmes)
+        //    {
+
+        //    }
+        //    Filmes.Add(new Filme
+        //    {
+        //        Id = 1,
+        //        //Titulo = "A New Hope",
+        //        //Diretor = "George Lucas",
+        //        //DataLancamento = new DateTime(1977, 05, 25)
+        //    });
+
+        //}
+
+
+    }
+
+
+    public class FilmeAdapter : BaseAdapter<Filme>
+    {
+        private readonly Activity context;
+        private readonly List<Filme> filmes;
+
+        public FilmeAdapter(Activity context, List<Filme> filmes)
+        {
+            this.context = context;
+            this.filmes = filmes;
+        }
+
+        public override Filme this[int position]
+        {
+            get
+            {
+                return filmes[position];
+            }
+        }
+
+        public override int Count
+        {
+            get
+            {
+                return filmes.Count;
+            }
+        }
+
+        public override long GetItemId(int position)
+        {
+            return filmes[position].Id;
+        }
+
+        public override View GetView(int position, View convertView, ViewGroup parent)
+        {
+            var view = convertView ?? context.LayoutInflater.Inflate(Resource.Layout.Main, parent, false);
+
+            var txtTitulo = view.FindViewById<TextView>(Resource.Id.editText1);
+            var image = view.FindViewById<ImageView>(Resource.Id.imageView1);
+
+            txtTitulo.Text = filmes[position].Descricao;
+            image.SetImageBitmap(filmes[position].Poster);
+
+            return view;
+        }
+    }
+
+
 }
 
